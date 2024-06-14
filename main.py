@@ -12,11 +12,13 @@ GREETINGS_MESSAGE = "Привет! Я могу помочь тебе опред�
 class Processor:
     @staticmethod
     def processPhoto():
-            # TODO process photo with AI
+        # TODO process photo with AI
+        pass
 
     @staticmethod
     def processVideo():
-            # TODO process video with AI
+        # TODO process video with AI
+        pass
 
 
 @dp.message(Command("start"))
@@ -39,11 +41,11 @@ async def chooseInputType(message: types.Message):
 @dp.message()
 async def userInput(message: types.Message):
     if message.photo:
-        await message.answer("photo")
+        print(message.photo)
     elif message.video:
         await message.answer("video")
     else:
-        await message.answer("eblan")
+        await message.answer("smthelse")
 async def main():
     await dp.start_polling(bot)
 
