@@ -12,12 +12,12 @@ GREETINGS_MESSAGE = "Привет! Я могу помочь тебе опред�
 class Processor:
     @staticmethod
     def processPhoto():
-        # TODO process photo with AI
+        # TODO processing photo with AI
         pass
 
     @staticmethod
     def processVideo():
-        # TODO process video with AI
+        # TODO processing video with AI
         pass
 
 
