@@ -1,16 +1,24 @@
 import asyncio
 import logging
-import os
-from typing import List
+import shutil
 
 import aiogram
 import cv2
-import ultralytics
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, types, F, BaseMiddleware
+from typing import Any, Awaitable, Callable, Dict, List, Union
 from aiogram.filters.command import Command
-from aiogram.types import FSInputFile
-from aiogram.types import Message
 from aiogram.utils.keyboard import ReplyKeyboardMarkup, KeyboardButton
+import ultralytics
+import os
+from aiogram.types import FSInputFile
+from aiogram.types import (
+    InputMediaAudio,
+    InputMediaDocument,
+    InputMediaPhoto,
+    InputMediaVideo,
+    Message,
+    TelegramObject,
+)
 from cv2 import Mat
 
 logging.basicConfig(level=logging.INFO)
@@ -19,6 +27,15 @@ API_TOKEN = "7169830227:AAFVpoHPO3ZVSJ7eLRyI0DIaidYs7r7e-Ms"
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
+DEFAULT_DELAY = 0.6
+
+INPUT_MEDIA_MAP = {
+    "photo": InputMediaPhoto,
+    "video": InputMediaVideo,
+    "document": InputMediaDocument,
+    "audio": InputMediaAudio,
+}
+
 GREETINGS_MESSAGE = "Привет! Я могу помочь тебе определить дефекты сварных швов!"
 
 defect_book: dict[str, str] = {"adj": "Прилегающие дефекты(adj): брызги, прожоги от дуги.",
@@ -26,6 +43,32 @@ defect_book: dict[str, str] = {"adj": "Прилегающие дефекты(adj
                                "geo": "Дефекты геометрии(geo): подрез, непровар, наплыв, чешуйчатость, западание, неравномерность.",
                                "pro": "Дефекты постобработки(pro): заусенец, торец, задир, забоина.",
                                "non": "Дефекты невыполнения(non): незаполнение раковины, несплавление."}
+
+
+class MediaGroupMiddleware(BaseMiddleware):
+    ALBUM_DATA: dict[str, list[Message]] = {}
+
+    def __init__(self, delay: Union[int, float] = DEFAULT_DELAY):
+        self.delay = delay
+
+    async def __call__(
+            self,
+            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+            event: Message,
+            data: Dict[str, Any],
+    ) -> Any:
+        if not event.media_group_id:
+            return await handler(event, data)
+
+        try:
+            self.ALBUM_DATA[event.media_group_id].append(event)
+            return  # Don't propagate the event
+        except KeyError:
+            self.ALBUM_DATA[event.media_group_id] = [event]
+            await asyncio.sleep(self.delay)
+            data["album"] = self.ALBUM_DATA.pop(event.media_group_id)
+
+        return await handler(event, data)
 
 
 class Processor:
@@ -102,4 +145,5 @@ async def main():
 
 
 if __name__ == "__main__":
+    dp.message.middleware(MediaGroupMiddleware())
     asyncio.run(main())
