@@ -4,7 +4,7 @@
 - клонировать репозиторий в свой проект Python
 - установить необходимые библиотеки из файла requirements.txt 
 ```pip install -r requirements.txt```
-- установить модель по ссылке https://disk.yandex.ru/d/_ec-U1MjaJgTsg и добавить ее в проект Python
+- установить модель по ссылке https://disk.yandex.ru/d/Y8-4gtNZ2vkWVQ и добавить ее в проект Python
 - запустить ```main.py```
   
 В случае ошибки "No module named #####", перезапустите IDE
